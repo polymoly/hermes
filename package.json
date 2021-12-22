@@ -5,6 +5,7 @@
   "main": "dist/hermes.js",
   "types": "dist/hermes.d.ts",
   "scripts": {
+    "prepublish": "yarn build",
     "build": "tsc && node scripts/fixCommonjsForBrowser.js",
     "lint": "eslint *.ts"
   },
