@@ -1,6 +1,6 @@
 {
   "name": "hermes-channel",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "client-side messaging channel for sending data from one browser tab to another",
   "main": "dist/hermes.js",
   "types": "dist/hermes.d.ts",
