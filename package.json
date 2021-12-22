@@ -1,21 +1,21 @@
 {
   "name": "hermes-channel",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "client-side messaging channel for sending data from one browser tab to another",
   "main": "dist/hermes.js",
+  "module": "dist/hermes.js",
   "types": "dist/hermes.d.ts",
   "scripts": {
     "prepublish": "yarn build",
     "build": "tsc && node scripts/fixCommonjsForBrowser.js",
     "lint": "eslint *.ts"
   },
+  "files": [
+    "dist/*",
+    "src/*"
+  ],
   "author": "Arnelle Balane <arnellebalane@gmail.com> (https://arnellebalane.com)",
   "license": "MIT",
-  "babel": {
-    "presets": [
-      "es2015"
-    ]
-  },
   "devDependencies": {
     "@types/node": "^17.0.2",
     "eslint": "^8.5.0",
@@ -45,6 +45,6 @@
     }
   },
   "lint-staged": {
-    "*.js": "eslint"
+    "*.ts": "eslint"
   }
 }
