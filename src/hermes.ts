@@ -72,8 +72,8 @@ function factory() {
          *
          *  Support table for localStorage: http://caniuse.com/#search=webstorage
          */
-
         const storage = window.localStorage;
+
         const prefix = "__hermes:";
         const queue: Record<string, any[]> = {};
 
@@ -152,11 +152,12 @@ function factory() {
 
         return { on, off, send };
     }
-
-    if ("BroadcastChannel" in window) {
-        return broadcastChannelApiFactory();
-    } else if ("localStorage" in window) {
-        return localStorageApiFactory();
+    if (typeof window !== "undefined") {
+        if ("BroadcastChannel" in window) {
+            return broadcastChannelApiFactory();
+        } else if ("localStorage" in window) {
+            return localStorageApiFactory();
+        }
     }
     return reactNative();
 }
