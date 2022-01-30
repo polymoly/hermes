@@ -73,68 +73,78 @@ function factory() {
          *  Support table for localStorage: http://caniuse.com/#search=webstorage
          */
 
-        const storage = window.localStorage;
         const prefix = "__hermes:";
         const queue: Record<string, any[]> = {};
 
         const send: FuncSend = (topic, data, target = "other") => {
             const key = prefix + topic;
-            if (storage.getItem(key) === null || storage.getItem(key) === "") {
-                if (target === "all" || target === "other") {
-                    storage.setItem(key, JSON.stringify(data));
-                    storage.removeItem(key);
-                }
+            if (typeof window !== "undefined") {
+                const storage = window.localStorage;
+                if (
+                    storage.getItem(key) === null ||
+                    storage.getItem(key) === ""
+                ) {
+                    if (target === "all" || target === "other") {
+                        storage.setItem(key, JSON.stringify(data));
+                        storage.removeItem(key);
+                    }
 
-                if (target === "all" || target === "current") {
-                    broadcast(topic, data);
+                    if (target === "all" || target === "current") {
+                        broadcast(topic, data);
+                    }
+
+                    return;
                 }
-            } else {
-                /*
-                 * The queueing system ensures that multiple calls to the send
-                 * function using the same name does not override each other's
-                 * values and makes sure that the next value is sent only when
-                 * the previous one has already been deleted from the storage.
-                 * NOTE: This could just be trying to solve a problem that is
-                 * very unlikely to occur.
-                 */
-                if (!(key in queue)) {
-                    queue[key] = [];
-                }
-                queue[key].push(data);
             }
+            /*
+             * The queueing system ensures that multiple calls to the send
+             * function using the same name does not override each other's
+             * values and makes sure that the next value is sent only when
+             * the previous one has already been deleted from the storage.
+             * NOTE: This could just be trying to solve a problem that is
+             * very unlikely to occur.
+             */
+            if (!(key in queue)) {
+                queue[key] = [];
+            }
+            queue[key].push(data);
         };
 
-        window.addEventListener("storage", (e) => {
-            if (!e.key) {
-                return;
-            }
-            if (
-                e.key.indexOf(prefix) === 0 &&
-                (e.oldValue === null || e.oldValue === "")
-            ) {
-                const topic = e.key.replace(prefix, "");
-                const data = e.newValue ? JSON.parse(e.newValue) : e.newValue;
-                broadcast(topic, data);
-            }
-        });
+        if (typeof window !== "undefined") {
+            window.addEventListener("storage", (e) => {
+                if (!e.key) {
+                    return;
+                }
+                if (
+                    e.key.indexOf(prefix) === 0 &&
+                    (e.oldValue === null || e.oldValue === "")
+                ) {
+                    const topic = e.key.replace(prefix, "");
+                    const data = e.newValue
+                        ? JSON.parse(e.newValue)
+                        : e.newValue;
+                    broadcast(topic, data);
+                }
+            });
 
-        window.addEventListener("storage", (e) => {
-            if (!e.key) {
-                return;
-            }
-            if (
-                e.key.indexOf(prefix) === 0 &&
-                (e.newValue === null || e.newValue === "")
-            ) {
-                const topic = e.key.replace(prefix, "");
-                if (topic in queue) {
-                    send(topic, queue[topic].shift());
-                    if (queue[topic].length === 0) {
-                        delete queue[topic];
+            window.addEventListener("storage", (e) => {
+                if (!e.key) {
+                    return;
+                }
+                if (
+                    e.key.indexOf(prefix) === 0 &&
+                    (e.newValue === null || e.newValue === "")
+                ) {
+                    const topic = e.key.replace(prefix, "");
+                    if (topic in queue) {
+                        send(topic, queue[topic].shift());
+                        if (queue[topic].length === 0) {
+                            delete queue[topic];
+                        }
                     }
                 }
-            }
-        });
+            });
+        }
 
         return { on, off, send };
     }
@@ -152,11 +162,12 @@ function factory() {
 
         return { on, off, send };
     }
-
-    if ("BroadcastChannel" in window) {
-        return broadcastChannelApiFactory();
-    } else if ("localStorage" in window) {
-        return localStorageApiFactory();
+    if (typeof window !== "undefined") {
+        if ("BroadcastChannel" in window) {
+            return broadcastChannelApiFactory();
+        } else if ("localStorage" in window) {
+            return localStorageApiFactory();
+        }
     }
     return reactNative();
 }
